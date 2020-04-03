@@ -16,12 +16,13 @@ module.exports.subscribeDiscord = function(event, context) {
   const repo = substitutions.REPO_NAME;
   const commit = substitutions.COMMIT_SHA;
   const commitUrl = `https://github.com/radiuszon/${repo}/commit/${commit}`;
+  const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
   fetchGitMessage(commit).then(result => {
-    axios.post(process.env.DISCORD_WEBHOOK_URL, {
+    axios.post(DISCORD_WEBHOOK_URL, {
       embeds: [
         {
-          title: `${repo}@${branch} is currently ${buildStatus.toLowerCase()}`,
+          title: `${repo}@${branch} is currently ${buildStatus}`,
           description: getMessage(result),
           color: getColor(buildStatus),
           url: commitUrl
@@ -40,11 +41,11 @@ const getColor = statusIndex =>
 
 const getMessage = result => {
   try {
-    return result.data.data.repository.object.message
+    return result.data.data.repository.object.message;
   } catch (error) {
-    return error
+    return error;
   }
-}
+};
 
 const fetchGitMessage = commitSha =>
   axios.post(
