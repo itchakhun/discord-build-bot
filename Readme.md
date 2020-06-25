@@ -14,6 +14,7 @@ First deployment, create .env.yaml providing access url and token
 ```
 DISCORD_WEBHOOK_URL: __URL__
 GITHUB_API_TOKEN: __TOKEN__
+OWNER_NAME: __NAME__
 ```
 
 and run following command,  

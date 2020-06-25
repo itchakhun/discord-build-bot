@@ -4,11 +4,12 @@ const BLUE = 3447003;
 const RED = 15158332;
 const GREEN = 3066993;
 
-const addFeild = (inline = false) => name => value => ({ inline, name, value });
+const addFeild = (inline = false) =>
+  (name) => (value) => ({ inline, name, value });
 
-module.exports.subscribeDiscord = function(event, context) {
+module.exports.subscribeDiscord = function (event, context) {
   const build = eventToBuild(event.data);
-  const status = ["WORKING", "SUCCESS", "FAILURE", "INTERNAL_ERROR", "TIMEOUT"];
+  const status = ["WORKING", "SUCCESS", "FAILURE", "INTERNAL_ERROR", "TIMEOUT", "CANCELLED"];
 
   if (!status.includes(build.status)) return;
 
@@ -17,12 +18,12 @@ module.exports.subscribeDiscord = function(event, context) {
   const branch = substitutions.BRANCH_NAME;
   const repo = substitutions.REPO_NAME;
   const commit = substitutions.COMMIT_SHA;
-  const commitUrl = `https://github.com/radiuszon/${repo}/commit/${commit}`;
+  const owner = process.env.OWNER_NAME;
   const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
   const inlineField = addFeild(true);
 
-  fetchGitMessage(commit).then(result => {
+  fetchGitMessage({ commit, repo, owner }).then((result) => {
     axios.post(DISCORD_WEBHOOK_URL, {
       embeds: [
         {
@@ -31,22 +32,22 @@ module.exports.subscribeDiscord = function(event, context) {
             inlineField("Repo")(repo),
             inlineField("Branch")(branch),
             inlineField("Status")(buildStatus),
-            addFeild()("Commit")(getMessage(result))
-          ]
-        }
-      ]
+            addFeild()("Commit")(getMessage(result)),
+          ],
+        },
+      ],
     });
   });
 };
 
-const eventToBuild = data => {
+const eventToBuild = (data) => {
   return JSON.parse(Buffer.from(data, "base64").toString());
 };
 
-const getColor = statusIndex =>
-  ({ SUCCESS: GREEN, WORKING: BLUE }[statusIndex] || RED);
+const getColor =
+  (statusIndex) => ({ SUCCESS: GREEN, WORKING: BLUE }[statusIndex] || RED);
 
-const getMessage = result => {
+const getMessage = (result) => {
   try {
     return result.data.data.repository.object.message;
   } catch (error) {
@@ -54,23 +55,23 @@ const getMessage = result => {
   }
 };
 
-const fetchGitMessage = commitSha =>
+const fetchGitMessage = ({ commit, repo, owner }) =>
   axios.post(
     "https://api.github.com/graphql",
     {
       query: `{
-      repository(owner:"radiuszon",name:"nimble-web") {
-        object(oid: "${commitSha}") {
+      repository(owner:"${owner}",name:"${repo}") {
+        object(oid: "${commit}") {
           ... on Commit {
             message
           }
         }
       }
-    }`
+    }`,
     },
     {
       headers: {
-        Authorization: `bearer ${process.env.GITHUB_API_TOKEN}`
-      }
-    }
+        Authorization: `bearer ${process.env.GITHUB_API_TOKEN}`,
+      },
+    },
   );

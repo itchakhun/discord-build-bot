@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "deploy": "gcloud functions deploy subscribeDiscord"
+    "deploy": "gcloud functions deploy subscribeDiscord --env-vars-file .env.yaml"
   },
   "author": "",
   "license": "ISC",
