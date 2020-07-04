@@ -41,9 +41,11 @@ module.exports.subscribeDiscord = function (event, context) {
   fetchGitMessage({ commit, repo, owner }).then((result) => {
     const thumbnail = getThumbnail(buildStatus);
     const color = getColor(buildStatus);
+    const title = `${repo}(${branch}) is ${capitalized(buildStatus)}`
     axios.post(DISCORD_WEBHOOK_URL, {
       embeds: [
         {
+          title,
           color,
           thumbnail,
           fields: [
@@ -80,7 +82,9 @@ const getThumbnail = (status) => {
     CANCELLED: WARNING_IMG,
   };
   return {
-    url: imgSet[status] || ERROR_IMG
+    url: imgSet[status] || ERROR_IMG,
+    width: 64,
+    height: 64
   };
 };
 
@@ -112,3 +116,7 @@ const fetchGitMessage = ({ commit, repo, owner }) =>
       },
     },
   );
+
+const capitalized = (textString) => {
+  return `${textString[0].toUpperCase()}${textString.toLowerCase().slice(1)}`
+}
