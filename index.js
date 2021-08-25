@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const GREY = 9545382;
-const BLUE = 39393;
+// const BLUE = 39393
 const RED = 16333359;
 const GREEN = 53606;
 const YELLOW = 16302848;
@@ -14,7 +14,7 @@ const SUCCESS_IMG = "https://img.icons8.com/flat_round/2x/checkmark.png";
 const addFeild = (inline = false) =>
   (name) => (value) => ({ inline, name, value });
 
-module.exports.subscribeDiscord = function (event, context) {
+module.exports.subscribeDiscord = function (event) {
   const build = eventToBuild(event.data);
   const status = [
     "WORKING",
