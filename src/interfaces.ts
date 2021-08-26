@@ -1,13 +1,13 @@
 enum CloudFunctionStatus {
-  STATUS_UNKNOWN = "STATUS_UNKNOWN",
-  QUEUED = "QUEUED",
-  WORKING = "WORKING",
-  SUCCESS = "SUCCESS",
-  FAILURE = "FAILURE",
-  INTERNAL_ERROR = "INTERNAL_ERROR",
-  TIMEOUT = "TIMEOUT",
-  CANCELLED = "CANCELLED",
-  EXPIRED = "EXPIRED",
+  STATUS_UNKNOWN = 'STATUS_UNKNOWN',
+  QUEUED = 'QUEUED',
+  WORKING = 'WORKING',
+  SUCCESS = 'SUCCESS',
+  FAILURE = 'FAILURE',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  TIMEOUT = 'TIMEOUT',
+  CANCELLED = 'CANCELLED',
+  EXPIRED = 'EXPIRED',
 }
 
 export type StatusString = keyof typeof CloudFunctionStatus;
@@ -68,4 +68,16 @@ interface Event {
 
 export interface CloudFunction {
   (event: Event): void;
+}
+
+export interface CommitResponse {
+  data: {
+    repository: {
+      object: Commit;
+    };
+  };
+}
+
+export interface Commit {
+  message: string;
 }
