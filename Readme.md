@@ -1,11 +1,22 @@
 
 # Discord gcloud build bot
 
-  
+## Generate Github token
+Setting > Developer settings > Personal access tokens
 
-  
+selects following scopes
 
-To deploy to cloud function
+- [x] repo
+  - [x] repo:status
+  - [x] repo_deployment
+  - [x] public_repo
+  - [x] repo:invite
+  - [x] security_events
+- [ ] user
+  - [x] read:user
+  - [x] user:email
+
+## To deploy to cloud function
 
   
 
