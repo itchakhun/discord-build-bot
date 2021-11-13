@@ -32,7 +32,7 @@ and run following command,
 
 ```
 
-gcloud functions deploy subscribeDiscord --trigger-topic cloud-builds --runtime nodejs10 --env-vars-file .env.yaml
+gcloud functions deploy subscribeDiscord --trigger-topic cloud-builds --runtime nodejs14 --env-vars-file .env.yaml
 
 ```
 
