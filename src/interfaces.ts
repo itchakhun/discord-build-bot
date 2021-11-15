@@ -1,4 +1,4 @@
-enum CloudFunctionStatus {
+export enum CloudFunctionStatus {
   STATUS_UNKNOWN = 'STATUS_UNKNOWN',
   QUEUED = 'QUEUED',
   WORKING = 'WORKING',
@@ -78,6 +78,13 @@ export interface CommitResponse {
   };
 }
 
+export interface Author {
+  name: string;
+  avatarUrl: string;
+}
+
 export interface Commit {
   message: string;
+  author: Author;
+  committedDate: string;
 }

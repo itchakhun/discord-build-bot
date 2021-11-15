@@ -2,14 +2,16 @@
   "name": "nimble-build-notification",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "deploy": "gcloud functions deploy subscribeDiscord --env-vars-file .env.yaml"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.2"
+    "axios": "^0.21.2",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/node": "^14.0.14",

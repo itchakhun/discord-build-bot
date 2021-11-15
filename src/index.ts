@@ -1,22 +1,40 @@
 import axios from 'axios';
+import moment = require('moment');
 import * as discord from './discord';
-import { fetchGitMessage, getMessage } from './github';
+import { fetchGitMessage, getRepository } from './github';
 import { CloudFunction, CloudFunctionEvent } from './interfaces';
 
-const addFeild =
+moment.locale('th');
+
+interface AddFieldReturn {
+  inline?: boolean;
+  name: string;
+  value: string;
+}
+
+const addField =
   (inline = false) =>
-  (name: string) =>
-  (value: string) => ({
+  (nameOrValue: string, value?: string) => ({
     inline,
-    name,
-    value,
+    name: value ? nameOrValue : undefined,
+    value: value || nameOrValue,
   });
 
 const eventToBuild = (data: string): CloudFunctionEvent => {
   return JSON.parse(Buffer.from(data, 'base64').toString());
 };
 
-export const subscribeDiscord: CloudFunction = (event): void => {
+const sendDiscordMessage = async (embeds: { fields: AddFieldReturn[] }[]) => {
+  try {
+    await axios.post(process.env.DISCORD_WEBHOOK_URL, {
+      embeds,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const subscribeDiscord: CloudFunction = async event => {
   const build = eventToBuild(event.data);
   const status = [
     'WORKING',
@@ -29,40 +47,59 @@ export const subscribeDiscord: CloudFunction = (event): void => {
 
   if (!status.includes(build.status)) return;
 
+  const { substitutions, finishTime } = build;
   const buildStatus = build.status;
-  const substitutions = build.substitutions;
   const logUrl = build.logUrl;
   const branch = substitutions.BRANCH_NAME;
   const repo = substitutions.REPO_NAME;
   const commit = substitutions.COMMIT_SHA;
   const owner = process.env.OWNER_NAME;
-  const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
-  const inlineField = addFeild(true);
+  const inlineField = addField(true);
 
-  fetchGitMessage({ commit, repo, owner }).then(result => {
-    const thumbnail = discord.getThumbnail(buildStatus);
+  const log = discord.getUrl('See log', logUrl);
+
+  try {
+    const result = await fetchGitMessage({ commit, repo, owner });
+    const {
+      author: githubAuthor,
+      message: description,
+      committedDate,
+    } = getRepository(result);
+
+    const mDate = moment(committedDate);
+    const committedAt = mDate.calendar();
+    const buildTime = finishTime ? moment(finishTime).fromNow(true) : 'N/A';
+
+    const fields = [
+      inlineField('Committed at', committedAt),
+      inlineField('Build time', buildTime),
+      inlineField('Repo', repo),
+      inlineField('Branch', branch),
+      inlineField('Status', buildStatus),
+      inlineField('Log', log),
+    ];
+
     const color = discord.getColor(buildStatus);
     const title = discord.getTitle({ repo, branch, status: buildStatus });
-    axios
-      .post(DISCORD_WEBHOOK_URL, {
-        embeds: [
-          {
-            title,
-            color,
-            thumbnail,
-            fields: [
-              inlineField('Repo')(repo),
-              inlineField('Branch')(branch),
-              inlineField('Status')(buildStatus),
-              addFeild()('See log')(logUrl),
-              addFeild()('Commit')(getMessage(result)),
-            ],
-          },
-        ],
-      })
-      .catch(e => {
-        console.error(e.response.message);
-      });
-  });
+    const thumbnail = discord.getThumbnail(buildStatus);
+    const author = {
+      name: githubAuthor.name,
+      icon_url: githubAuthor.avatarUrl,
+    };
+    const embeds = [
+      {
+        title,
+        description,
+        color,
+        thumbnail,
+        author,
+        fields,
+      },
+    ];
+
+    await sendDiscordMessage(embeds);
+  } catch (error) {
+    console.error(error);
+  }
 };

@@ -49,3 +49,6 @@ export const getTitle = ({
   branch: string;
   status: string;
 }): string => `${repo}(${branch}) is ${capitalized(status)}`;
+
+export const getUrl = (message: string, url: string): string =>
+  `[${message}](${url})`;
