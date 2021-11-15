@@ -1,10 +1,13 @@
 import axios from 'axios';
+import moment = require('moment');
 import * as discord from './discord';
 import { fetchGitMessage, getRepository } from './github';
 import { CloudFunction, CloudFunctionEvent } from './interfaces';
 
+moment.locale('th');
+
 interface AddFieldReturn {
-  inline: boolean;
+  inline?: boolean;
   name: string;
   value: string;
 }
@@ -13,7 +16,7 @@ const addField =
   (inline = false) =>
   (nameOrValue: string, value?: string) => ({
     inline,
-    name: value ? nameOrValue : '',
+    name: value ? nameOrValue : undefined,
     value: value || nameOrValue,
   });
 
@@ -44,8 +47,8 @@ export const subscribeDiscord: CloudFunction = async event => {
 
   if (!status.includes(build.status)) return;
 
+  const { substitutions, finishTime } = build;
   const buildStatus = build.status;
-  const substitutions = build.substitutions;
   const logUrl = build.logUrl;
   const branch = substitutions.BRANCH_NAME;
   const repo = substitutions.REPO_NAME;
@@ -53,16 +56,24 @@ export const subscribeDiscord: CloudFunction = async event => {
   const owner = process.env.OWNER_NAME;
 
   const inlineField = addField(true);
-  const blockField = addField();
 
   const log = discord.getUrl('See log', logUrl);
 
   try {
     const result = await fetchGitMessage({ commit, repo, owner });
-    const { author: githubAuthor, message } = getRepository(result);
+    const {
+      author: githubAuthor,
+      message: description,
+      committedDate,
+    } = getRepository(result);
+
+    const mDate = moment(committedDate);
+    const committedAt = mDate.calendar();
+    const buildTime = finishTime ? moment(finishTime).fromNow(true) : 'N/A';
 
     const fields = [
-      blockField(message),
+      inlineField('Committed at', committedAt),
+      inlineField('Build time', buildTime),
       inlineField('Repo', repo),
       inlineField('Branch', branch),
       inlineField('Status', buildStatus),
@@ -79,6 +90,7 @@ export const subscribeDiscord: CloudFunction = async event => {
     const embeds = [
       {
         title,
+        description,
         color,
         thumbnail,
         author,

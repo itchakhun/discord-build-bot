@@ -26,6 +26,7 @@ export const fetchGitMessage = ({
         object(oid: "${commit}") {
           ... on Commit {
             message
+            committedDate
             author {
               avatarUrl
               name
