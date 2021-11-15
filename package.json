@@ -2,8 +2,9 @@
   "name": "nimble-build-notification",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "deploy": "gcloud functions deploy subscribeDiscord --env-vars-file .env.yaml"
   },
   "author": "",

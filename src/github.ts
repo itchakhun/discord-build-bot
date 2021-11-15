@@ -1,9 +1,11 @@
 import axios, { AxiosPromise, AxiosResponse } from 'axios';
 import { CommitResponse } from './interfaces';
 
-export const getMessage = (result: AxiosResponse<CommitResponse>): string => {
+type Repo = CommitResponse['data']['repository']['object'];
+
+export const getRepository = (result: AxiosResponse<CommitResponse>): Repo => {
   try {
-    return result.data.data.repository.object.message;
+    return result.data.data.repository.object;
   } catch (error) {
     return error;
   }
@@ -24,6 +26,10 @@ export const fetchGitMessage = ({
         object(oid: "${commit}") {
           ... on Commit {
             message
+            author {
+              avatarUrl
+              name
+            }
           }
         }
       }
