@@ -1,5 +1,5 @@
 import axios from 'axios';
-import moment = require('moment');
+import * as moment from 'moment-timezone';
 import * as discord from './discord';
 import { fetchGitMessage, getRepository } from './github';
 import { CloudFunction, CloudFunctionEvent } from './interfaces';
@@ -47,7 +47,8 @@ export const subscribeDiscord: CloudFunction = async event => {
 
   if (!status.includes(build.status)) return;
 
-  const { substitutions, finishTime } = build;
+  const { substitutions, finishTime, startTime } = build;
+  const buildId = build.id.split('-')[0];
   const buildStatus = build.status;
   const logUrl = build.logUrl;
   const branch = substitutions.BRANCH_NAME;
@@ -67,13 +68,15 @@ export const subscribeDiscord: CloudFunction = async event => {
       committedDate,
     } = getRepository(result);
 
+    const BKK_TIMEZONE = 'Asia/Bangkok';
     const mDate = moment(committedDate);
-    const committedAt = mDate.calendar();
-    const buildTime = finishTime ? moment(finishTime).fromNow(true) : 'N/A';
+    const committedAt = mDate.tz(BKK_TIMEZONE).calendar();
+    const buildTime = finishTime ? moment(startTime).fromNow(true) : '-';
 
     const fields = [
       inlineField('Committed at', committedAt),
       inlineField('Build time', buildTime),
+      inlineField('Build ID', buildId),
       inlineField('Repo', repo),
       inlineField('Branch', branch),
       inlineField('Status', buildStatus),
