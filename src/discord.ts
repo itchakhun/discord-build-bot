@@ -42,13 +42,13 @@ const capitalized = (textString: string) => {
 
 export const getTitle = ({
   repo,
-  branch,
+  target,
   status,
 }: {
   repo: string;
-  branch: string;
+  target: string;
   status: string;
-}): string => `${repo}(${branch}) is ${capitalized(status)}`;
+}): string => `${repo}(${target}) is ${capitalized(status)}`;
 
 export const getUrl = (message: string, url: string): string =>
   `[${message}](${url})`;
