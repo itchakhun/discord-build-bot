@@ -1,7 +1,13 @@
 import axios, { AxiosPromise, AxiosResponse } from 'axios';
-import { CommitResponse } from './interfaces';
+import { CommitResponse, ErrorResponse } from './interfaces';
 
 type Repo = CommitResponse['data']['repository']['object'];
+
+export const isError = (
+  payload: AxiosResponse<CommitResponse | ErrorResponse>
+): payload is AxiosResponse<ErrorResponse> => {
+  return 'errors' in payload.data;
+};
 
 export const getRepository = (result: AxiosResponse<CommitResponse>): Repo => {
   try {
@@ -17,11 +23,8 @@ export const fetchGitMessage = ({
   owner,
 }: {
   [k: string]: string;
-}): AxiosPromise<CommitResponse> => {
-  return axios.post(
-    'https://api.github.com/graphql',
-    {
-      query: `{
+}): AxiosPromise<CommitResponse | ErrorResponse> => {
+  const query = `{
       repository(owner:"${owner}",name:"${repo}") {
         object(oid: "${commit}") {
           ... on Commit {
@@ -34,7 +37,12 @@ export const fetchGitMessage = ({
           }
         }
       }
-    }`,
+    }`;
+  console.log({ query });
+  return axios.post(
+    'https://api.github.com/graphql',
+    {
+      query,
     },
     {
       headers: {

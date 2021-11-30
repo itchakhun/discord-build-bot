@@ -78,6 +78,14 @@ export interface CommitResponse {
   };
 }
 
+interface Error {
+  message: string;
+}
+
+export interface ErrorResponse {
+  errors: Error[];
+}
+
 export interface Author {
   name: string;
   avatarUrl: string;

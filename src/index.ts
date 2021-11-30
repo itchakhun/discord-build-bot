@@ -1,8 +1,12 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import * as moment from 'moment-timezone';
 import * as discord from './discord';
-import { fetchGitMessage, getRepository } from './github';
-import { CloudFunction, CloudFunctionEvent } from './interfaces';
+import { fetchGitMessage, getRepository, isError } from './github';
+import {
+  CloudFunction,
+  CloudFunctionEvent,
+  CommitResponse,
+} from './interfaces';
 
 moment.locale('th');
 
@@ -63,11 +67,12 @@ export const subscribeDiscord: CloudFunction = async event => {
 
   try {
     const result = await fetchGitMessage({ commit, repo, owner });
+    if (isError(result)) throw new Error(result.data.errors[0].message);
     const {
       author: githubAuthor,
       message: description,
       committedDate,
-    } = getRepository(result);
+    } = getRepository(result as AxiosResponse<CommitResponse>);
 
     const BKK_TIMEZONE = 'Asia/Bangkok';
     const mDate = moment(committedDate);
